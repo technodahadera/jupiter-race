@@ -154,7 +154,8 @@ summary { cursor: pointer }
 #room-qr { display: block; width: 126px; height: 126px; image-rendering: pixelated; border-radius: 7px }
 #awaiting-players { margin: 5px 0 4px; text-align: center; color: var(--muted) }
 .solo-ranking { margin-top: 16px }
-#race-leader { color: #ffdb93 }
+#race-leader { display: block; color: #ffdb93; padding-block: 1px 5px; overflow-wrap: anywhere }
+#race-leader:empty { display: none }
 #player-ranks { list-style: none; padding: 0; margin: 12px 0 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(235px,100%),1fr)); gap: 7px }
 #player-ranks li { display: grid; grid-template-columns: 2rem minmax(0,1fr) auto; align-items: center; gap: 7px; position: relative; overflow: hidden; min-height: 41px; padding: 6px 8px; border: 1px solid var(--line); border-radius: 8px; background: #b3d2ff08 }
 #player-ranks li:first-child { border-color: #ffdca680 }
