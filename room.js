@@ -60,14 +60,70 @@
     return;
   }
 
+  let renderedQR = '';
+  let ranksKey = '';
+  const rankRows = new Map();
+
+  function updateQR(code) {
+    if (renderedQR === code) return;
+    renderedQR = code;
+    $('room-qr').hidden = true;
+    if (!code) return;
+    import('./qrcode.mjs').then(({default: qrcode}) => {
+      if (renderedQR !== code) return;
+      const qr = qrcode(0, 'M');
+      qr.addData(address(code));
+      qr.make();
+      $('room-qr').src = qr.createDataURL(4, 16);
+      $('room-qr').hidden = false;
+    }).catch(() => { /* The room code and link remain available. */ });
+  }
+
+  function updateRanks(standings, goal) {
+    $('solo-ranking').hidden = !standings.length;
+    const lead = standings[0];
+    $('race-leader').textContent = lead?.score ? `במקום הראשון · ${lead.name}` : '';
+    const key = standings.map(player => player.id).join(',');
+    if (key !== ranksKey) {
+      const ids = new Set(standings.map(player => player.id));
+      for (const id of rankRows.keys()) if (!ids.has(id)) rankRows.delete(id);
+      const rows = standings.map(player => {
+        if (!rankRows.has(player.id)) {
+          const row = document.createElement('li');
+          const rank = document.createElement('span');
+          const name = document.createElement('span');
+          name.textContent = player.name;
+          name.dir = 'auto';
+          const score = document.createElement('bdi');
+          row.append(rank, name, score);
+          row.style.setProperty('--player-color', teamColors[player.id % teamColors.length]);
+          rankRows.set(player.id, row);
+        }
+        return rankRows.get(player.id);
+      });
+      $('player-ranks').replaceChildren(...rows);
+      ranksKey = key;
+    }
+    standings.forEach((player, index) => {
+      const row = rankRows.get(player.id);
+      row.children[0].textContent = index + 1;
+      row.children[2].textContent = `${player.score}/${goal}`;
+      row.style.setProperty('--progress', `${player.score / goal * 100}%`);
+    });
+  }
+
   renderRoom = () => {
     const state = race.mobile;
     $('room-board').hidden = !state;
+    updateQR(state?.code ?? '');
+    updateRanks(state?.mode === 'solo' ? state.standings : [], race.goal);
     if (!state) return;
-    const joined = state.joined.reduce((sum, count) => sum + count, 0);
+    const joined = state.mode === 'solo' ? state.joined : state.joined.reduce((sum, count) => sum + count, 0);
     $('room-code').textContent = state.code;
     const timing = race.round.phase === 'open' ? ` · ${Math.ceil(state.remaining / 1000)} שניות` : '';
-    const counts = `${joined} טלפונים מחוברים · ${state.submissions} תשובות${timing}`;
+    const players = joined === 1 ? 'משתתף אחד' : `${joined} משתתפים`;
+    const answers = state.submissions === 1 ? 'תשובה אחת' : `${state.submissions} תשובות`;
+    const counts = `${players} · ${answers}${timing}`;
     if ($('room-counts').textContent !== counts) $('room-counts').textContent = counts;
   };
   render();
@@ -87,20 +143,26 @@
     const old = currentState;
     currentState = state;
     const phase = state.phase === 'closing' ? 'open' : state.phase;
-    race.teams = state.teams;
+    const solo = state.mode === 'solo';
+    if (!solo) race.teams = state.teams;
     race.goal = state.goal;
     race.question = state.question;
-    race.mobile = { code: state.code, remaining: state.remaining, joined: state.joined, submissions: state.submissions };
+    race.mobile = { code: state.code, mode: state.mode, remaining: state.remaining, joined: state.joined,
+      submissions: state.submissions, standings: state.standings };
+    race.winnerName = state.result?.winnerName;
     race.end = state.ended || '';
     race.winner = state.result?.winner;
-    race.round = {
-      phase, tried: [], active: null, revealed: !!state.result,
-      result: state.result ? state.result.awards.map(({ team, points, first }) =>
-        `${state.teams[team].name} +${points}${first ? ' ⚡' : ''}`).join(' · ') || 'בסבב הזה לא התקבלה תשובה נכונה.' : ''
-    };
+    let result = '';
+    if (state.result) {
+      result = (solo
+        ? state.result.fastest && `⚡ התשובה הנכונה הראשונה · ${state.result.fastest}`
+        : state.result.awards.map(({ team, points, first }) => `${state.teams[team].name} +${points}${first ? ' ⚡' : ''}`).join(' · '))
+        || 'בסבב הזה לא התקבלה תשובה נכונה.';
+    }
+    race.round = { phase, tried: [], active: null, revealed: !!state.result, result };
     if (old && old.phase !== state.phase) {
       if (state.phase === 'open') tone([430, 680]);
-      if (state.phase === 'resolved' && state.result?.awards.length) tone(race.end ? [523,659,784,1047,1319] : [523,659,880]);
+      if (state.phase === 'resolved' && (state.result?.correctCount ?? state.result?.awards?.length)) tone(race.end ? [523,659,784,1047,1319] : [523,659,880]);
     }
     commit();
   }
@@ -155,12 +217,12 @@
     $('live-room').disabled = true;
     $('live-room').textContent = 'פותחים חדר…';
     try {
-      const result = await request('/rooms', { body: { names: race.teams.map(team => team.name), goal: race.goal, question: 0 } });
+      const result = await request('/rooms', { body: { mode: 'solo', names: race.teams.map(team => team.name), goal: race.goal, question: 0 } });
       cacheIdentity({ code: result.code, hostKey: result.hostKey });
       setupHost();
-      applyState({ code: result.code, phase: 'ready', question: 0, teams: race.teams.map(team => ({...team, score: 0})),
-        goal: race.goal, joined: race.teams.map(() => 0), submissions: 0, remaining: 0 });
-      message('room-message', 'שתפו את קישור ההצטרפות או הציגו לכיתה את קוד החדר.');
+      applyState({ code: result.code, mode: 'solo', phase: 'ready', question: 0, standings: [],
+        goal: race.goal, joined: 0, submissions: 0, remaining: 0 });
+      message('room-message', 'הציגו את קוד ה־QR לכיתה או העתיקו את קישור ההצטרפות.');
       refreshRoom();
     } catch {
       $('live-room').textContent = '📱 משחק בטלפונים';
@@ -235,6 +297,7 @@
     document.querySelector('.shell').hidden = true;
     $('student').hidden = false;
     const input = $('join-code');
+    const nameInput = $('pilot-name');
     let code = '';
     let player;
     let state;
@@ -258,13 +321,19 @@
     });
 
     function renderStudent() {
-      const hasTeam = state?.team != null;
-      $('join-card').hidden = hasTeam;
+      const solo = state?.mode === 'solo';
+      const joined = solo ? !!state.name : state?.team != null;
+      $('join-card').hidden = joined;
       $('join-form').hidden = !!state;
-      $('choose-team').hidden = !state || hasTeam;
-      $('student-game').hidden = !hasTeam;
+      $('choose-team').hidden = !state || solo || joined;
+      $('join-pilot').hidden = !solo || joined;
+      $('student-game').hidden = !joined;
       if (!state) return;
-      if (!hasTeam) {
+      if (solo && !joined) {
+        $('join-pilot').querySelector('button').disabled = busy || !!state.ended;
+        return;
+      }
+      if (!joined) {
         const layout = JSON.stringify(state.teams.map(team => team.name));
         if (layout !== teamLayout) {
           teamLayout = layout;
@@ -274,7 +343,7 @@
             button.className = 'buzzer';
             button.style.setProperty('--team', teamColors[index]);
             button.textContent = team.name;
-            button.onclick = () => joinTeam(index);
+            button.onclick = () => enroll({ team: index });
             teamChoices.append(button);
           });
         }
@@ -282,11 +351,11 @@
         return;
       }
 
-      const team = state.teams[state.team];
+      const pilot = solo ? {name: state.name, score: state.score} : state.teams[state.team];
       const open = state.phase === 'open' && state.remaining > 0 && !state.ended;
       const resolved = !!state.result;
       const choice = state.choice ?? (lastChoice?.round === state.round ? lastChoice.choice : null);
-      $('student-team').textContent = team.name;
+      $('student-team').textContent = pilot.name;
       $('student-timer').textContent = open ? `${Math.ceil(state.remaining / 1000)} שניות`
         : state.ended ? 'המשימה הסתיימה' : resolved ? 'תוצאות' : 'ממתינים למורה';
       $('student-question').textContent = state.phase === 'ready' ? (state.ended ? 'המרוץ הסתיים!' : 'מחכים לפתיחת השאלה') : state.prompt;
@@ -303,9 +372,10 @@
         ? `${choice === state.result.answer ? 'עניתם נכון! ' : ''}${state.result.explanation}`
         : choice !== null ? 'התשובה נקלטה. מחכים לסיום הסבב.' : open ? 'בחרו תשובה אחת.' : '';
       if (feedback !== $('student-feedback').textContent) $('student-feedback').textContent = feedback;
-      const winner = state.result?.winner;
-      const orbit = winner == null ? '' : ` · ${state.teams[winner].name} הגיעה למסלול צדק!`;
-      $('student-score').textContent = `${team.score} מתוך ${state.goal} צעדים לצדק${orbit}`;
+      const winner = solo ? state.result?.winnerName : state.teams[state.result?.winner]?.name;
+      const orbit = winner ? ` · מקום ראשון: ${winner}` : '';
+      const rank = solo && state.rank ? ` · מקום ${state.rank}` : '';
+      $('student-score').textContent = `${pilot.score} מתוך ${state.goal} צעדים לצדק${rank}${orbit}`;
     }
 
     function update(data) {
@@ -335,18 +405,21 @@
       }
     }
 
-    async function joinTeam(team) {
+    async function enroll(body) {
       if (busy || !code) return;
       busy = true;
       renderStudent();
       const at = generation;
       try {
-        const data = await request(`/rooms/${code}/join`, { body: { team }, player });
+        const data = await request(`/rooms/${code}/join`, { body, player });
         if (at !== generation) return;
         update(data);
         message('student-message', '');
       } catch (err) {
-        if (at === generation) message('student-message', err.code === 'full' ? 'החדר מלא או שהמשחק הסתיים.' : 'ההצטרפות לא הצליחה. נסו שוב.');
+        if (at === generation) {
+          const errors = { full: 'החדר מלא או שהמשחק הסתיים.', duplicate: 'הכינוי הזה כבר תפוס. בחרו כינוי אחר.', name: 'הקלידו שם או כינוי באורך של עד 24 תווים.' };
+          message('student-message', errors[err.code] || 'ההצטרפות לא הצליחה. נסו שוב.');
+        }
       } finally {
         if (at === generation) { busy = false; renderStudent(); }
       }
@@ -392,6 +465,7 @@
     }
 
     $('join-form').onsubmit = event => { event.preventDefault(); enter(input.value); };
+    $('join-pilot').onsubmit = event => { event.preventDefault(); enroll({ name: nameInput.value }); };
     $('student-exit').onclick = () => {
       if (!code && !state) { location.href = new URL(location.pathname, location.href).href; return; }
       clearTimeout(timer);

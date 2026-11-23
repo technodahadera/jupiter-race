@@ -44,6 +44,39 @@ const optionRows = 'אבגד'.split('').map(letter => {
 let teamLayout = '';
 const shipRows = [];
 const buzzButtons = [];
+function makeLane(name, color) {
+  const lane = document.createElement('div');
+  lane.className = 'lane';
+  lane.style.setProperty('--team', color);
+  lane.innerHTML = '<div class="track" aria-hidden="true"><div class="ship-position"><div class="ship"><div class="flame"></div></div></div></div><div class="lane-meta"><span dir="auto"></span><b></b></div>';
+  lane.querySelector('span').textContent = name;
+  return lane;
+}
+
+const soloLanes = new Map();
+let soloOrder = '';
+function renderSoloLanes(standings, goal) {
+  teamLayout = '';
+  const leaders = standings.slice(0, 6);
+  const order = leaders.map(player => player.id).join(',');
+  if (order !== soloOrder || $('lanes').children.length !== leaders.length) {
+    const active = new Set(leaders.map(player => player.id));
+    for (const id of soloLanes.keys()) if (!active.has(id)) soloLanes.delete(id);
+    const rows = leaders.map(player => {
+      if (!soloLanes.has(player.id)) soloLanes.set(player.id, makeLane(player.name, teamColors[player.id % teamColors.length]));
+      return soloLanes.get(player.id);
+    });
+    $('lanes').replaceChildren(...rows);
+    soloOrder = order;
+  }
+  for (const player of leaders) {
+    const lane = soloLanes.get(player.id);
+    lane.style.setProperty('--progress', Math.min(player.score / goal, 1));
+    lane.querySelector('b').textContent = `${player.score}/${goal}`;
+  }
+  $('awaiting-players').hidden = !!leaders.length;
+}
+
 function buildTeams() {
   const layout = JSON.stringify(race.teams.map(team => team.name));
   if (layout === teamLayout) return;
@@ -53,11 +86,7 @@ function buildTeams() {
   shipRows.length = 0;
   buzzButtons.length = 0;
   race.teams.forEach((team, index) => {
-    const lane = document.createElement('div');
-    lane.className = 'lane';
-    lane.style.setProperty('--team', teamColors[index]);
-    lane.innerHTML = '<div class="track" aria-hidden="true"><div class="ship-position"><div class="ship"><div class="flame"></div></div></div></div><div class="lane-meta"><span dir="auto"></span><b></b></div>';
-    lane.querySelector('span').textContent = team.name;
+    const lane = makeLane(team.name, teamColors[index]);
     $('lanes').append(lane);
     shipRows.push(lane);
 
@@ -78,7 +107,14 @@ function buildTeams() {
 function render() {
   const { teams, goal, question, round, end } = race;
   const [topic, prompt, options, answer, explanation, double] = questions[question];
-  buildTeams();
+  const solo = race.mobile?.mode === 'solo';
+  if (solo) renderSoloLanes(race.mobile.standings, goal);
+  else {
+    soloOrder = '';
+    soloLanes.clear();
+    $('awaiting-players').hidden = true;
+    buildTeams();
+  }
   $('topic').textContent = topic;
   $('counter').textContent = `שאלה ${question + 1} / ${questions.length}`;
   $('double').hidden = !double;
@@ -89,7 +125,7 @@ function render() {
   });
   $('explanation').hidden = !round.revealed;
   $('explanation').textContent = round.revealed ? explanation : '';
-  $('phase').textContent = phases[round.phase];
+  $('phase').textContent = solo && round.phase === 'open' ? 'שאלה פתוחה' : phases[round.phase];
   const active = teams[round.active];
   $('instruction').textContent = {
     ready: 'מקריאים את השאלה ואז פותחים את הזמזמים.',
@@ -99,7 +135,7 @@ function render() {
   }[round.phase];
   $('turn-info').textContent = round.result;
   $('arm').hidden = round.phase !== 'ready' && !(liveRoom && round.phase === 'open');
-  $('arm').textContent = liveRoom ? (round.phase === 'open' ? 'סגירת תשובות וחשיפה' : 'פתיחת תשובות בטלפונים') : 'פתיחת זמזמים';
+  $('arm').textContent = liveRoom ? (round.phase === 'open' ? 'סגירת תשובות וחשיפה' : solo ? 'פתיחת השאלה הראשונה' : 'פתיחת תשובות בטלפונים') : 'פתיחת זמזמים';
   $('arm').disabled = liveUIBusy || !!end;
   $('settings').disabled = !!liveRoom;
   $('reveal').hidden = !!liveRoom;
@@ -107,16 +143,16 @@ function render() {
   $('wrong-rule').textContent = liveRoom ? 'תשובה אחת מכל טלפון' : 'טעות מעבירה את התור';
   if (liveRoom) $('instruction').textContent = round.phase === 'ready'
     ? 'מקריאים את השאלה ופותחים את חלון התשובות בטלפונים למשך 18 שניות.'
-    : round.phase === 'open' ? 'התלמידים יכולים לבחור תשובה בטלפונים. כל קבוצה שענתה נכון תתקדם.'
+    : round.phase === 'open' ? (solo ? 'כל תלמיד עונה בטלפון שלו. החלליות מתקדמות בסיום הסבב.' : 'התלמידים יכולים לבחור תשובה בטלפונים. כל קבוצה שענתה נכון תתקדם.')
     : 'אפשר לעבור לשאלה הבאה.';
   $('right').hidden = $('wrong').hidden = round.phase !== 'locked';
-  $('next').disabled = round.phase === 'open' || round.phase === 'locked' || !!end || liveUIBusy;
+  $('next').disabled = round.phase === 'open' || round.phase === 'locked' || (solo && round.phase === 'ready') || !!end || liveUIBusy;
   $('next').textContent = question === questions.length - 1 ? 'סיום המרוץ' : 'לשאלה הבאה';
   $('reveal').disabled = round.revealed || round.phase === 'locked';
   $('reveal').textContent = round.phase === 'open' ? 'סגירת זמזמים וחשיפה' : 'חשיפת תשובה';
   $('sound').setAttribute('aria-pressed', String(race.sound));
   $('sound').textContent = race.sound ? '♪ צליל פעיל' : '♪ צליל כבוי';
-  teams.forEach((team, index) => {
+  if (!solo) teams.forEach((team, index) => {
     const lane = shipRows[index];
     lane.style.setProperty('--progress', Math.min(team.score / goal, 1));
     lane.querySelector('b').textContent = `${team.score}/${goal}`;
@@ -125,7 +161,13 @@ function render() {
     buzzer.classList.toggle('current', round.active === index);
   });
   $('win').hidden = !end;
-  if (end) {
+  if (end && solo) {
+    const lead = race.mobile.standings[0];
+    $('winner').textContent = end === 'orbit' ? `${race.winnerName} במקום הראשון!` :
+      lead?.score ? `${lead.name} במקום הראשון!` : 'המרוץ הסתיים';
+    $('win-detail').textContent = end === 'orbit' ? 'החללית הראשונה הגיעה למסלול סביב צדק.' :
+      lead?.score ? `${lead.score} מתוך ${goal} צעדים לצדק` : 'בסיבוב הזה לא נצברו צעדים.';
+  } else if (end) {
     const best = Math.max(...teams.map(team => team.score));
     const leaders = teams.filter(team => team.score === best).map(team => team.name);
     const orbitTeam = teams[race.winner]?.name ?? leaders[0];

@@ -148,3 +148,16 @@ summary { cursor: pointer }
 #student-score { color: #c3d4fc; margin-bottom: 0 }
 #student-message { background: #241933; color: #ffdb9d; border-radius: 8px; padding: 10px; line-height: 1.4 }
 @media(max-width:760px) { .top { flex-wrap: wrap } nav { justify-content: start } }
+
+.room-invite { display: flex; align-items: center; gap: 13px }
+.room-invite strong, .room-invite b { display: block }
+#room-qr { display: block; width: 126px; height: 126px; image-rendering: pixelated; border-radius: 7px }
+#awaiting-players { margin: 5px 0 4px; text-align: center; color: var(--muted) }
+.solo-ranking { margin-top: 16px }
+#race-leader { color: #ffdb93 }
+#player-ranks { list-style: none; padding: 0; margin: 12px 0 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(235px,100%),1fr)); gap: 7px }
+#player-ranks li { display: grid; grid-template-columns: 2rem minmax(0,1fr) auto; align-items: center; gap: 7px; position: relative; overflow: hidden; min-height: 41px; padding: 6px 8px; border: 1px solid var(--line); border-radius: 8px; background: #b3d2ff08 }
+#player-ranks li:first-child { border-color: #ffdca680 }
+#player-ranks li::before { content: ""; position: absolute; inset: auto 0 0 auto; width: var(--progress); height: 3px; background: var(--player-color); transition: width .7s ease; opacity: .9 }
+#player-ranks span:first-child { color: var(--player-color); font-weight: bold }
+#player-ranks span:nth-child(2) { overflow-wrap: anywhere }
