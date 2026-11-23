@@ -89,6 +89,7 @@
   planets.forEach(planet => { planet.sprite = disk(planet); });
   earthImage.onload = () => {
     const sprite = earth.sprite;
+    sprite.width = 312;
     const paint = sprite.getContext('2d');
     paint.save();
     paint.translate(156, 156);
