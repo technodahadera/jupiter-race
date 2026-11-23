@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#0b1025">
+<title>מרוץ לצדק • טכנודע</title>
+<link rel="stylesheet" href="./style.css">
+<script defer src="./questions.js"></script>
+<script defer src="./game.js"></script>
+<script defer src="./space.js"></script>
+</head>
+<body>
+<div class="shell">
+<header class="top">
+  <div class="brand"><span class="brand-icon" aria-hidden="true">✦</span><div><strong>טכנודע חדרה</strong><small>משימת אסטרונומיה</small></div></div>
+  <nav aria-label="כלי משחק">
+    <button id="sound" class="light" aria-pressed="true">♪ צליל</button>
+    <button id="project" class="light">מסך הקרנה</button>
+    <button id="settings" class="light">⚙ הגדרות</button>
+  </nav>
+</header>
+<main>
+  <section class="scene" aria-label="לוח מרוץ החלליות">
+    <canvas id="space" aria-hidden="true"></canvas>
+    <div class="scene-top">
+      <div><span class="mission"><i></i> משימת מסלול</span><h1>מרוץ <em>לצדק</em></h1><p>עונים נכון, מאיצים ומגיעים למסלול סביב ענק הגזים.</p></div>
+      <div class="target"><span>יעד המשימה</span><strong>צדק</strong></div>
+    </div>
+    <div class="route" id="route" dir="ltr">
+      <div class="waypoints" aria-hidden="true"><span>מסלול צדק</span><span>חגורת האסטרואידים</span><span>מאדים</span><span>כדור הארץ</span></div>
+      <div id="lanes"></div>
+    </div>
+    <div id="win" class="win" hidden><div class="win-content"><span aria-hidden="true">✦</span><h2 id="winner"></h2><p id="win-detail"></p><button id="again">מרוץ חדש</button></div></div>
+  </section>
+
+  <div class="console">
+    <section class="question card" aria-labelledby="question-title">
+      <div class="card-head"><div><span id="topic" class="tag"></span><span id="double" class="tag amber" hidden>אתגר כפול</span></div><b id="counter"></b></div>
+      <h2 id="question-title">טוען את המשימה…</h2>
+      <ol id="options"></ol>
+      <div id="explanation" class="explanation" hidden></div>
+      <div class="question-actions teacher">
+        <button id="reveal" class="light">חשיפת תשובה</button>
+        <div class="question-nav"><button id="next">לשאלה הבאה</button></div>
+      </div>
+    </section>
+    <section class="control card teacher" aria-labelledby="control-title">
+      <div class="card-head"><h2 id="control-title">מרכז הבקרה</h2><span id="phase" class="tag"></span></div>
+      <p id="instruction" aria-live="polite"></p>
+      <div id="buzzers" class="buzzers"></div>
+      <div class="controls"><button id="arm">פתיחת זמזמים</button><button id="right" class="success" hidden>נכון ✓</button><button id="wrong" class="danger" hidden>הזדמנות לקבוצה אחרת</button></div>
+      <div id="turn-info" class="turn-info" aria-live="polite"></div>
+    </section>
+  </div>
+  <footer class="teacher"><b>כללי הטיסה</b><span>תשובה נכונה <strong>+2</strong></span><span>בונוס לראשונים <strong>+1</strong></span><span>אתגר כפול <strong>×2</strong> לצעד הבסיסי</span><span>טעות מעבירה את התור</span></footer>
+</main>
+</div>
+<dialog id="setup">
+  <form id="setup-form">
+    <div class="card-head"><h2>הגדרות המרוץ</h2><button type="button" id="close" class="light">סגירה</button></div>
+    <label>קבוצות <select id="count"><option>2</option><option selected>3</option><option>4</option><option>5</option><option>6</option></select></label>
+    <label>אורך המסלול <select id="goal"><option value="10">קצר · 10 צעדים</option><option value="16">רגיל · 16 צעדים</option><option value="22">ארוך · 22 צעדים</option></select></label>
+    <div id="names"></div>
+    <details><summary>איך מפעילים בכיתה?</summary><p>מקריאים שאלה ופותחים זמזמים. הקבוצות לוחצות על הכפתור או על מקש 1–6 במקלדת המשותפת. אם משתמשים במשרוקיות פיזיות, המורה לוחץ על הקבוצה ששמע ראשונה. לאחר תשובה בעל פה, המורה מסמן אם היא נכונה. מסך ההקרנה נפתח בחלון נוסף באותו דפדפן ומתעדכן אוטומטית.</p></details>
+    <div class="controls"><button type="submit">שמירת הגדרות</button><button type="button" id="reset" class="light">איפוס המרוץ</button></div>
+  </form>
+</dialog>
+</body>
+</html>

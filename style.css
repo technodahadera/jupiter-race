@@ -1,0 +1,119 @@
+:root {
+  color-scheme: dark;
+  font-family: "Rubik", "Arial", sans-serif;
+  background: #090d1d;
+  color: #f2f6ff;
+  --muted: #abb8d9;
+  --line: #ffffff21;
+  --cyan: #73ebff;
+  --panel: #131c36;
+}
+* { box-sizing: border-box }
+[hidden] { display: none !important }
+body { margin: 0; min-height: 100vh; background: radial-gradient(ellipse at 52% -18%, #263468, transparent 63%) }
+.shell { width: min(1420px, 100%); margin: auto; padding: 0 clamp(13px, 3vw, 42px) 20px }
+.top, .brand, nav, .card-head, .question-actions, .question-nav, .controls, footer { display: flex; align-items: center; gap: .65rem }
+.top, .card-head, .question-actions { justify-content: space-between }
+.top { min-height: 72px; padding-block: 9px }
+.brand-icon { display: grid; place-items: center; width: 42px; height: 42px; font-size: 25px; border: 1px solid #8baeff75; border-radius: 14px; background: #7c9cff24; color: var(--cyan) }
+.brand strong, .brand small { display: block }
+.brand small { margin-top: 3px; color: var(--muted); font-size: .875rem }
+nav { flex-wrap: wrap }
+button, input, select { font: inherit }
+button { font-weight: 700; color: #092035; background: var(--cyan); border: 1px solid transparent; border-radius: 11px; padding: .65rem .85rem; cursor: pointer; min-height: 42px; transition: background .18s, transform .18s, box-shadow .18s }
+button:hover:enabled { background: #b1f5ff; box-shadow: 0 0 16px #69e6ff35 }
+button:active:enabled { transform: translateY(2px) }
+button:disabled { opacity: .46; cursor: default }
+:focus-visible { outline: 3px solid #fce38e; outline-offset: 3px }
+.light { background: #ffffff09; color: #e3ecff; border-color: var(--line) }
+.light:hover:enabled, .danger:hover:enabled, .success:hover:enabled { background: #334466; color: white }
+.scene { isolation: isolate; position: relative; overflow: hidden; min-height: 365px; display: flex; flex-direction: column; justify-content: space-between; border: 1px solid #6489ca70; border-radius: 25px; background: radial-gradient(ellipse at 15% 36%, #442d60, transparent 48%), radial-gradient(ellipse at 76% 78%, #25346b, transparent 47%), #111631; box-shadow: 0 14px 60px #0005 }
+.scene::before { position: absolute; inset: 0; content: ""; background: linear-gradient(270deg,#080b21bb,transparent 70%); z-index: -1 }
+#space { position: absolute; inset: 0; width: 100%; height: 100%; z-index: -2 }
+.scene-top { display: flex; justify-content: space-between; align-items: flex-start; padding: 25px clamp(16px,3vw,38px) 10px }
+.mission { font-weight: bold; color: #c1f7ff; font-size: .89rem; display: inline-flex; gap: 8px; align-items: center; padding: 6px 11px; background: #0e284cb0; border: 1px solid #79dff450; border-radius: 20px }
+.mission i { border-radius: 50%; width: 7px; height: 7px; background: var(--cyan); box-shadow: 0 0 10px var(--cyan) }
+h1 { font-size: clamp(2.8rem, 7.3vw, 6rem); line-height: .98; letter-spacing: -.055em; margin: 12px 0 9px; text-shadow: 0 9px 30px #000a }
+h1 em { font-style: normal; color: #ffcb86 }
+.scene-top p { color: #d8e5ff; margin: 0; font-weight: 600; text-shadow: 0 2px 8px #01030e }
+.target { border: 1px solid #ffd5a15c; background: #1e173899; padding: 7px 12px; border-radius: 12px; text-align: center; backdrop-filter: blur(5px) }
+.target span { display: block; font-size: .85rem; color: #ffdcae }
+.target strong { font-size: 1.22rem }
+.route { margin: 45px clamp(12px,3vw,36px) 15px; padding: 9px clamp(9px, 2vw, 22px) 7px; border-radius: 16px; background: #080f27dc; border: 1px solid #b6d2ff34; backdrop-filter: blur(10px) }
+.waypoints { display: flex; justify-content: space-between; gap: 9px; color: #c7d3ef; font-size: .82rem; font-weight: 700; padding-block: 3px 8px }
+.waypoints span:first-child { color: #ffd498 }
+.lane { --start: 5%; --length: 90%; display: grid; grid-template-columns: 1fr minmax(66px, 14%); gap: 10px; align-items: center; min-height: 34px; border-top: 1px solid #a6cbff19 }
+.track { position: relative; background: repeating-linear-gradient(90deg, #a9c7ff66 0 4px, transparent 4px 12px) center / var(--length) 1px no-repeat; height: 30px }
+.track::before { content: ""; position: absolute; right: var(--start); width: calc(var(--length) * var(--progress)); height: 2px; top: 14px; background: var(--team); box-shadow: 0 0 10px var(--team); transition: width 1s cubic-bezier(.2,.7,.25,1) }
+.ship-position { position: absolute; left: calc(95% - var(--length) * var(--progress)); top: 50%; transform: translate(-50%,-50%); transition: left 1s cubic-bezier(.2,.7,.25,1) }
+.ship { width: 31px; height: 17px; position: relative; filter: drop-shadow(0 0 5px var(--team)); animation: hover 2.4s ease-in-out infinite alternate }
+.ship::before { content: ""; position: absolute; inset: 0 4px 0 0; clip-path: polygon(0 50%,25% 25%,46% 23%,78% 0,79% 20%,98% 29%,93% 50%,98% 71%,79% 80%,78% 100%,46% 77%,25% 75%); background: linear-gradient(#fff 5%, var(--team) 37%, #eafaff 49%, var(--team) 65%, #535b91 100%) }
+.ship::after { content: ""; position: absolute; left: 9px; top: 5px; width: 7px; height: 6px; border-radius: 45%; background: #263354; border: 1px solid #e4fbff }
+.flame { position: absolute; left: 24px; top: 6px; height: 5px; width: 16px; background: linear-gradient(90deg,#fff7b7,var(--team),transparent); clip-path: polygon(0 0,100% 50%,0 100%); animation: jet .33s alternate infinite }
+.lane-meta { display: flex; justify-content: space-between; gap: 5px; color: var(--team); min-width: 0; font-size: .86rem; font-weight: 700 }
+.lane-meta span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap }
+.lane-meta b { font-variant-numeric: tabular-nums }
+.console { display: grid; grid-template-columns: 1.4fr 1fr; gap: 16px; margin-top: 16px; align-items: start }
+.card { border: 1px solid var(--line); border-radius: 19px; background: linear-gradient(135deg,#182241,var(--panel) 60%); padding: clamp(13px,2vw,22px); box-shadow: 0 10px 28px #070b1a48 }
+.card h2, dialog h2 { margin: 0; font-size: 1.22rem }
+.tag { display: inline-block; border-radius: 20px; padding: 4px 10px; background: #73dcff19; color: #9df1ff; font-size: .85rem; font-weight: 700 }
+.amber { background: #ffc67522; color: #ffdb9a; margin-inline-start: 5px }
+#counter { color: var(--muted); font-size: .87rem; flex-shrink: 0 }
+#question-title { font-size: clamp(1.28rem,2.15vw,1.85rem); margin: 13px 0 12px; line-height: 1.26 }
+#options { padding: 0; margin: 0; list-style: none; display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 8px }
+#options li { display: flex; align-items: center; gap: 8px; background: #ffffff07; border: 1px solid #e7edff25; border-radius: 10px; min-height: 38px; padding: 6px 9px }
+#options i { display: grid; place-items: center; flex: 0 0 22px; height: 22px; background: #8eaaf629; color: #e6edff; border-radius: 6px; font-weight: 700; font-style: normal }
+#options .correct, .explanation { border-color: #60e9b096; background: #54dda722 }
+.explanation { margin-top: 12px; padding: 9px 12px; border: 1px solid #60e9b050; border-radius: 9px; line-height: 1.45 }
+.question-actions { margin-top: 13px; flex-wrap: wrap }
+#instruction { color: #cbd7f1; margin: 10px 0 13px; line-height: 1.45; min-height: 2.65em }
+.buzzers { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 8px }
+.buzzer { color: var(--team); border-color: color-mix(in srgb, var(--team) 45%, transparent); background: color-mix(in srgb, var(--team) 13%, #151d37); padding: 6px 5px; min-width: 0 }
+.buzzer span { display: block; text-overflow: ellipsis; white-space: nowrap; overflow: hidden }
+.buzzer:hover:enabled, .buzzer.current { color: #141933; background: var(--team); opacity: 1; box-shadow: 0 0 20px color-mix(in srgb,var(--team) 32%,transparent) }
+kbd { display: inline-block; font: bold .82rem Arial,sans-serif; min-width: 17px; padding: 2px 4px; border-radius: 5px; background: #151c3c77; color: #fff; margin-top: 3px }
+.controls { flex-wrap: wrap; margin-top: 13px }
+.success { background: #80f2ba }
+.danger { background: #fff0; border-color: #eba8927a; color: #ffd0be }
+.turn-info { min-height: 1.4em; color: #aad7ff; font-weight: bold; margin-top: 9px }
+footer { flex-wrap: wrap; gap: 8px 18px; padding: 12px 5px 0; color: #b2bedc; font-size: .88rem }
+footer b, footer strong { color: #e4eeff }
+dialog { width: min(520px, calc(100% - 24px)); border: 1px solid #6d8bc0; border-radius: 18px; background: #141e3a; color: #fff; padding: 22px; box-shadow: 0 18px 50px #0008 }
+dialog::backdrop { background: #050820cd }
+dialog label { display: flex; align-items: center; justify-content: space-between; gap: 9px; margin-top: 11px }
+input, select { background: #0c1530; color: white; border: 1px solid #809bd180; padding: 7px; border-radius: 7px; max-width: 65% }
+details { margin-top: 14px; line-height: 1.45; color: #d3dfff }
+summary { cursor: pointer }
+.win { position: absolute; inset: 0; display: grid; place-items: center; background: #070a20c7; text-align: center; backdrop-filter: blur(3px); z-index: 2 }
+.win-content { padding: 23px; animation: arrive .45s ease-out both }
+.win-content > span { font-size: 3.6rem; color: #ffda93; display: block; text-shadow: 0 0 45px #ffa964 }
+.win h2 { font-size: clamp(1.8rem,5vw,3.6rem); margin: 2px 0 }
+.win p { color: #d9e6ff; margin-block: 8px 13px }
+.projection .teacher, .projection nav, .projection #again { display: none !important }
+.projection .console { grid-template-columns: 1fr }
+.projection .scene { min-height: clamp(370px, 53vh, 670px) }
+.projection .card { padding: clamp(16px,3vw,32px) }
+.projection #question-title { font-size: clamp(1.5rem,3vw,2.6rem) }
+.projection #options li { font-size: clamp(1rem,1.6vw,1.5rem) }
+@keyframes hover { from { transform: translateY(-1.5px) } to { transform: translateY(1.5px) } }
+@keyframes jet { from { transform: scaleX(.7) } to { transform: scaleX(1.3) } }
+@keyframes arrive { from { transform: scale(.8); opacity: 0 } to { transform: scale(1); opacity: 1 } }
+@media(max-width:760px) {
+  .console { grid-template-columns: 1fr }
+  .top { gap: 8px }
+  nav { gap: 5px; justify-content: end }
+  nav button { font-size: .82rem; padding: 5px 7px }
+  .scene { min-height: 330px }
+  .route { margin-top: 65px }
+}
+@media(max-width:425px) {
+  .brand-icon { display: none }
+  .brand strong { font-size: .92rem }
+  .brand small { font-size: .73rem }
+  .target { display: none }
+  .waypoints, .lane-meta { font-size: .73rem }
+  #options { grid-template-columns: 1fr }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important }
+}
