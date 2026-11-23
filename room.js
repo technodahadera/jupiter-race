@@ -185,7 +185,7 @@
     currentState = null;
     liveRoom = null;
     liveUIBusy = false;
-    race = fresh(race.teams.map(team => team.name), race.setupGoal ?? 16, race.sound);
+    race = fresh(race.setupGoal ?? 16, race.sound);
     $('live-room').textContent = 'הזמנת תלמידים';
     $('live-room').disabled = false;
     message('room-message', '');
@@ -213,16 +213,14 @@
     }
   }
 
-  async function openRoom(skipConfirm = false) {
+  async function openRoom() {
     if (credentials || liveUIBusy) return;
-    const inProgress = race.question > 0 || race.round.phase !== 'ready' || race.teams.some(team => team.score);
-    if (!skipConfirm && inProgress && !confirm('פתיחת חדר טלפונים תתחיל מרוץ חדש. להמשיך?')) return;
     liveUIBusy = true;
     $('live-room').disabled = true;
     $('lobby-invite').disabled = true;
     $('live-room').textContent = 'פותחים חדר…';
     try {
-      const result = await request('/rooms', { body: { mode: 'solo', names: race.teams.map(team => team.name), goal: race.goal, question: 0 } });
+      const result = await request('/rooms', { body: { mode: 'solo', names: ['אוריון', 'נובה'], goal: race.goal, question: 0 } });
       cacheIdentity({ code: result.code, hostKey: result.hostKey });
       setupHost();
       applyState({ code: result.code, mode: 'solo', phase: 'ready', question: 0, standings: [],
@@ -268,7 +266,7 @@
   }
 
   async function restartRoom() {
-    if (await doAction('delete')) openRoom(true);
+    if (await doAction('delete')) openRoom();
   }
 
   $('live-room').onclick = () => {

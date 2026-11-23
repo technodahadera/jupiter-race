@@ -4,10 +4,11 @@
   if (!ctx) return;
   const motion = matchMedia('(prefers-reduced-motion: reduce)');
   const nebula = new Image();
+  const earthImage = new Image();
   const planets = [
     { x: .17, scale: 1, kind: 'jupiter', colors: ['#ffe5b7','#f1bc83','#b66f56','#ffdcaa','#9f5a4a','#e3a16e','#f6c38e','#a2615b','#f8d5a7'] },
     { x: .65, scale: .36, kind: 'mars', colors: ['#f5b889','#d57959','#8e453d','#d68a6a'] },
-    { x: .87, scale: .47, kind: 'earth', colors: ['#79e6ff','#287ab7','#134893','#316aac'] }
+    { x: .87, scale: .54, kind: 'earth', colors: ['#235b9e','#287ab7','#134893','#316aac'] }
   ];
 
   let seed = 832;
@@ -65,9 +66,8 @@
       for (let i = 0; i < 70; i++) {
         const x = random() * 288 - 144;
         const y = random() * 288 - 144;
-        const isEarth = planet.kind === 'earth';
         paint.globalAlpha = .16 + random() * .44;
-        paint.fillStyle = (isEarth ? ['#173c84','#2b84b4','#77d4a6','#d3f3eb'] : planet.colors)[i % 4];
+        paint.fillStyle = planet.colors[i % 4];
         paint.beginPath();
         paint.ellipse(x, y, 8 + random() * 53, 3 + random() * 19, random() - .6, 0, Math.PI * 2);
         paint.fill();
@@ -85,7 +85,26 @@
     return image;
   }
 
+  const earth = planets.find(planet => planet.kind === 'earth');
   planets.forEach(planet => { planet.sprite = disk(planet); });
+  earthImage.onload = () => {
+    const sprite = earth.sprite;
+    const paint = sprite.getContext('2d');
+    paint.save();
+    paint.translate(156, 156);
+    paint.clearRect(-156, -156, 312, 312);
+    paint.beginPath();
+    paint.arc(0, 0, 144, 0, Math.PI * 2);
+    paint.clip();
+    paint.drawImage(earthImage, -144, -144, 288, 288);
+    const atmosphere = paint.createRadialGradient(0, 0, 133, 0, 0, 144);
+    atmosphere.addColorStop(0, 'transparent');
+    atmosphere.addColorStop(1, '#70cfff80');
+    paint.fillStyle = atmosphere;
+    paint.fillRect(-144, -144, 288, 288);
+    paint.restore();
+    restart();
+  };
   let width = 0;
   let height = 0;
   let frame;
@@ -193,4 +212,5 @@
   motion.addEventListener('change', restart);
   nebula.onload = restart;
   nebula.src = './nebula.webp';
+  earthImage.src = './earth.webp';
 })();

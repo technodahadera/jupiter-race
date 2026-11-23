@@ -5,11 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#0b1025">
 <title>מרוץ לצדק • טכנודע</title>
-<link rel="stylesheet" href="./style.css?v=space-lobby-1">
+<link rel="stylesheet" href="./style.css?v=earth-phones-1">
 <script defer src="./questions.js"></script>
-<script defer src="./game.js?v=space-lobby-1"></script>
-<script defer src="./space.js?v=space-lobby-1"></script>
-<script defer src="./room.js?v=space-lobby-1"></script>
+<script defer src="./game.js?v=earth-phones-1"></script>
+<script defer src="./space.js?v=earth-phones-1"></script>
+<script defer src="./room.js?v=earth-phones-1"></script>
 </head>
 <body>
 <div class="shell">
@@ -34,7 +34,7 @@
       <span id="label-jupiter">צדק</span><span id="label-asteroids">חגורת האסטרואידים</span>
       <span id="label-mars">מאדים</span><span id="label-earth">כדור הארץ</span>
     </div>
-    <div id="lobby-actions" class="teacher" hidden><button id="lobby-invite">הזמנת תלמידים</button><button id="local-start" class="light">משחק עם זמזמים</button></div>
+    <div id="lobby-actions" class="teacher" hidden><button id="lobby-invite">הזמנת תלמידים</button></div>
   <section id="room-board" class="room-board" aria-label="הצטרפות בטלפונים" hidden>
     <div class="room-invite"><img id="room-qr" alt="קוד QR להצטרפות למרוץ" width="126" height="126" hidden><div><strong>סרקו להצטרפות</strong><b id="room-code" dir="ltr"></b></div></div>
     <div id="room-counts" aria-live="polite"></div>
@@ -58,15 +58,13 @@
       <ol id="options"></ol>
       <div id="explanation" class="explanation" hidden></div>
       <div class="question-actions teacher">
-        <button id="reveal" class="light">חשיפת תשובה</button>
         <div class="question-nav"><button id="next">לשאלה הבאה</button></div>
       </div>
     </section>
     <section class="control card teacher" aria-labelledby="control-title">
       <div class="card-head"><h2 id="control-title">מרכז הבקרה</h2><span id="phase" class="tag"></span></div>
       <p id="instruction" aria-live="polite"></p>
-      <div id="buzzers" class="buzzers"></div>
-      <div class="controls"><button id="arm">פתיחת זמזמים</button><button id="right" class="success" hidden>נכון ✓</button><button id="wrong" class="danger" hidden>הזדמנות לקבוצה אחרת</button></div>
+      <div class="controls"><button id="arm">סגירת תשובות וחשיפה</button></div>
       <div id="turn-info" class="turn-info" aria-live="polite"></div>
     </section>
   </div>
@@ -74,7 +72,7 @@
     <div class="card-head"><h2 id="ranking-title">טבלת המרוץ</h2></div>
     <ol id="player-ranks"></ol>
   </section>
-  <footer class="teacher" id="flight-rules" hidden><b>כללי הטיסה</b><span>תשובה נכונה <strong>+2</strong></span><span>בונוס לראשונים <strong>+1</strong></span><span>אתגר כפול <strong>×2</strong> לצעד הבסיסי</span><span id="wrong-rule">טעות מעבירה את התור</span></footer>
+  <footer class="teacher" id="flight-rules" hidden><b>כללי הטיסה</b><span>תשובה נכונה <strong>+2</strong></span><span>בונוס לראשונים <strong>+1</strong></span><span>אתגר כפול <strong>×2</strong> לצעד הבסיסי</span><span>תשובה אחת מכל טלפון</span></footer>
 </main>
 </div>
 <main id="student" class="student" hidden>
@@ -105,11 +103,8 @@
 <dialog id="setup">
   <form id="setup-form">
     <div class="card-head"><h2>הגדרות המרוץ</h2><button type="button" id="close" class="light">סגירה</button></div>
-    <label>קבוצות <select id="count"><option>2</option><option selected>3</option><option>4</option><option>5</option><option>6</option></select></label>
     <label>אורך המסלול <select id="goal"><option value="10">קצר</option><option value="16">רגיל</option><option value="22">ארוך</option></select></label>
-    <div id="names"></div>
-    <details><summary>איך מפעילים בכיתה?</summary><p>מקריאים שאלה ופותחים זמזמים. הקבוצות לוחצות על הכפתור או על מקש 1–6 במקלדת המשותפת. אם משתמשים במשרוקיות פיזיות, המורה לוחץ על הקבוצה ששמע ראשונה. לאחר תשובה בעל פה, המורה מסמן אם היא נכונה. מסך ההקרנה נפתח בחלון נוסף באותו דפדפן ומתעדכן אוטומטית.</p></details>
-    <div class="controls"><button type="submit">שמירת הגדרות</button><button type="button" id="reset" class="light">איפוס המרוץ</button></div>
+    <div class="controls"><button type="submit">שמירת הגדרות</button></div>
   </form>
 </dialog>
 </body>
