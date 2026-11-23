@@ -21,6 +21,14 @@ function loadRace() {
 
 let race = loadRace();
 let audio;
+let liveRoom = null;
+let liveUIBusy = false;
+let renderRoom = () => {};
+if (!projection && race.mobile) {
+  try {
+    if (!sessionStorage.getItem('technoda-jupiter-host')) race = fresh(race.teams.map(team => team.name), race.goal, race.sound);
+  } catch { race = fresh(); }
+}
 document.body.classList.toggle('projection', projection);
 
 const optionRows = 'אבגד'.split('').map(letter => {
@@ -90,9 +98,19 @@ function render() {
     resolved: 'אפשר לעבור לשאלה הבאה.'
   }[round.phase];
   $('turn-info').textContent = round.result;
-  $('arm').hidden = round.phase !== 'ready';
+  $('arm').hidden = round.phase !== 'ready' && !(liveRoom && round.phase === 'open');
+  $('arm').textContent = liveRoom ? (round.phase === 'open' ? 'סגירת תשובות וחשיפה' : 'פתיחת תשובות בטלפונים') : 'פתיחת זמזמים';
+  $('arm').disabled = liveUIBusy || !!end;
+  $('settings').disabled = !!liveRoom;
+  $('reveal').hidden = !!liveRoom;
+  $('buzzers').hidden = !!liveRoom;
+  $('wrong-rule').textContent = liveRoom ? 'תשובה אחת מכל טלפון' : 'טעות מעבירה את התור';
+  if (liveRoom) $('instruction').textContent = round.phase === 'ready'
+    ? 'מקריאים את השאלה ופותחים את חלון התשובות בטלפונים למשך 18 שניות.'
+    : round.phase === 'open' ? 'התלמידים יכולים לבחור תשובה בטלפונים. כל קבוצה שענתה נכון תתקדם.'
+    : 'אפשר לעבור לשאלה הבאה.';
   $('right').hidden = $('wrong').hidden = round.phase !== 'locked';
-  $('next').disabled = round.phase === 'open' || round.phase === 'locked' || !!end;
+  $('next').disabled = round.phase === 'open' || round.phase === 'locked' || !!end || liveUIBusy;
   $('next').textContent = question === questions.length - 1 ? 'סיום המרוץ' : 'לשאלה הבאה';
   $('reveal').disabled = round.revealed || round.phase === 'locked';
   $('reveal').textContent = round.phase === 'open' ? 'סגירת זמזמים וחשיפה' : 'חשיפת תשובה';
@@ -110,11 +128,13 @@ function render() {
   if (end) {
     const best = Math.max(...teams.map(team => team.score));
     const leaders = teams.filter(team => team.score === best).map(team => team.name);
-    $('winner').textContent = end === 'orbit' ? `${leaders[0]} הגיעה למסלול צדק!` :
+    const orbitTeam = teams[race.winner]?.name ?? leaders[0];
+    $('winner').textContent = end === 'orbit' ? `${orbitTeam} הגיעה למסלול צדק!` :
       best === 0 ? 'המרוץ הסתיים' : leaders.length > 1 ? 'תיקו בהובלה!' : `${leaders[0]} מובילה במרוץ!`;
     $('win-detail').textContent = end === 'orbit' ? 'המשימה הושלמה. כל הכבוד לצוותי החלל!' :
       best === 0 ? 'לא נצברו צעדים בסיבוב הזה.' : `${leaders.join(' · ')} | ${best} מתוך ${goal} צעדים`;
   }
+  renderRoom();
 }
 
 function commit() {
@@ -147,7 +167,7 @@ function tone(notes) {
 
 function buzz(index) {
   const round = race.round;
-  if (projection || race.end || round.phase !== 'open' || !race.teams[index] || round.tried.includes(index)) return;
+  if (projection || liveRoom || race.end || round.phase !== 'open' || !race.teams[index] || round.tried.includes(index)) return;
   round.phase = 'locked';
   round.active = index;
   round.result = round.tried.length ? 'תשובה נכונה תזכה בצעדי הבסיס של השאלה.' : 'זמזום ראשון! תשובה נכונה תזכה בבונוס של צעד.';
@@ -213,6 +233,7 @@ if (projection) {
   });
 } else {
   $('arm').onclick = () => {
+    if (liveRoom) return liveRoom.action(race.round.phase === 'open' ? 'close' : 'open');
     if (race.round.phase !== 'ready' || race.end) return;
     race.round.phase = 'open';
     tone([420, 610]);
@@ -220,7 +241,7 @@ if (projection) {
   };
   $('right').onclick = () => grade(true);
   $('wrong').onclick = () => grade(false);
-  $('next').onclick = nextQuestion;
+  $('next').onclick = () => liveRoom ? liveRoom.action('next') : nextQuestion();
   $('reveal').onclick = () => {
     race.round.phase = 'resolved';
     race.round.revealed = true;
@@ -263,7 +284,7 @@ if (projection) {
     $('setup').close();
     startAgain();
   };
-  $('again').onclick = startAgain;
+  $('again').onclick = () => liveRoom ? liveRoom.restart() : startAgain();
   window.addEventListener('keydown', event => {
     if (event.repeat || event.altKey || event.ctrlKey || event.metaKey || $('setup').open) return;
     if (/^[1-6]$/.test(event.key)) buzz(Number(event.key) - 1);

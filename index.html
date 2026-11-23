@@ -9,6 +9,7 @@
 <script defer src="./questions.js"></script>
 <script defer src="./game.js"></script>
 <script defer src="./space.js"></script>
+<script defer src="./room.js"></script>
 </head>
 <body>
 <div class="shell">
@@ -16,6 +17,8 @@
   <div class="brand"><span class="brand-icon" aria-hidden="true">✦</span><div><strong>טכנודע חדרה</strong><small>משימת אסטרונומיה</small></div></div>
   <nav aria-label="כלי משחק">
     <button id="sound" class="light" aria-pressed="true">♪ צליל</button>
+    <button id="live-room">📱 משחק בטלפונים</button>
+    <button id="join-page" class="light">הצטרפות</button>
     <button id="project" class="light">מסך הקרנה</button>
     <button id="settings" class="light">⚙ הגדרות</button>
   </nav>
@@ -32,6 +35,13 @@
       <div id="lanes"></div>
     </div>
     <div id="win" class="win" hidden><div class="win-content"><span aria-hidden="true">✦</span><h2 id="winner"></h2><p id="win-detail"></p><button id="again">מרוץ חדש</button></div></div>
+  </section>
+
+  <section id="room-board" class="card room-board" aria-label="הצטרפות בטלפונים" hidden>
+    <div><strong>קוד הצטרפות</strong><b id="room-code" dir="ltr"></b></div>
+    <div id="room-counts" aria-live="polite"></div>
+    <div class="teacher room-links"><button id="copy-room" class="light">העתקת קישור</button><button id="end-room" class="light">סגירת חדר</button></div>
+    <p id="room-message" class="teacher" role="status" hidden></p>
   </section>
 
   <div class="console">
@@ -53,9 +63,29 @@
       <div id="turn-info" class="turn-info" aria-live="polite"></div>
     </section>
   </div>
-  <footer class="teacher"><b>כללי הטיסה</b><span>תשובה נכונה <strong>+2</strong></span><span>בונוס לראשונים <strong>+1</strong></span><span>אתגר כפול <strong>×2</strong> לצעד הבסיסי</span><span>טעות מעבירה את התור</span></footer>
+  <footer class="teacher"><b>כללי הטיסה</b><span>תשובה נכונה <strong>+2</strong></span><span>בונוס לראשונים <strong>+1</strong></span><span>אתגר כפול <strong>×2</strong> לצעד הבסיסי</span><span id="wrong-rule">טעות מעבירה את התור</span></footer>
 </main>
 </div>
+<main id="student" class="student" hidden>
+  <header class="student-header"><span class="brand-icon" aria-hidden="true">✦</span><div><small>טכנודע חדרה</small><h1>מרוץ <em>לצדק</em></h1></div></header>
+  <section class="card" id="join-card">
+    <form id="join-form">
+      <h2>הצטרפות למשחק</h2>
+      <label for="join-code">קוד החדר שמופיע אצל המורה</label>
+      <div class="join-fields"><input id="join-code" required minlength="8" maxlength="8" autocapitalize="characters" autocomplete="off" spellcheck="false" dir="ltr" placeholder="ABC234XY"><button>כניסה לחדר</button></div>
+    </form>
+    <div id="choose-team" hidden><h2>בחרו את הקבוצה שלכם</h2><div id="team-choices"></div></div>
+  </section>
+  <section class="card student-game" id="student-game" hidden aria-labelledby="student-question">
+    <div class="card-head"><span id="student-team" class="tag"></span><span id="student-timer" class="tag" aria-live="off"></span></div>
+    <h2 id="student-question"></h2>
+    <div id="student-answers"></div>
+    <p id="student-feedback" aria-live="polite"></p>
+    <p id="student-score"></p>
+  </section>
+  <p id="student-message" role="status" hidden></p>
+  <button id="student-exit" class="light">חזרה למסך הכניסה</button>
+</main>
 <dialog id="setup">
   <form id="setup-form">
     <div class="card-head"><h2>הגדרות המרוץ</h2><button type="button" id="close" class="light">סגירה</button></div>
