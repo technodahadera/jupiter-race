@@ -6,7 +6,7 @@ const projection = new URLSearchParams(location.search).has('projection');
 const phases = { ready: 'ממתינים', open: 'זמזמים פתוחים', locked: 'תור לתשובה', resolved: 'סבב הסתיים' };
 
 function fresh(names = teamNames.slice(0, 3), goal = 16, sound = true) {
-  return { teams: names.map(name => ({ name, score: 0 })), goal, sound,
+  return { started: false, teams: names.map(name => ({ name, score: 0 })), goal, sound,
     question: 0, round: { phase: 'ready', tried: [], active: null, result: '', revealed: false }, end: '' };
 }
 
@@ -26,7 +26,7 @@ let liveUIBusy = false;
 let renderRoom = () => {};
 if (!projection && race.mobile) {
   try {
-    if (!sessionStorage.getItem('technoda-jupiter-host')) race = fresh(race.teams.map(team => team.name), race.goal, race.sound);
+    if (!sessionStorage.getItem('technoda-jupiter-host')) race = fresh(race.teams.map(team => team.name), race.setupGoal ?? 16, race.sound);
   } catch { race = fresh(); }
 }
 document.body.classList.toggle('projection', projection);
@@ -57,7 +57,7 @@ const soloLanes = new Map();
 let soloOrder = '';
 function renderSoloLanes(standings, goal) {
   teamLayout = '';
-  const leaders = standings.slice(0, 6);
+  const leaders = standings;
   const order = leaders.map(player => player.id).join(',');
   if (order !== soloOrder || $('lanes').children.length !== leaders.length) {
     const active = new Set(leaders.map(player => player.id));
@@ -74,6 +74,8 @@ function renderSoloLanes(standings, goal) {
     lane.style.setProperty('--progress', Math.min(player.score / goal, 1));
     lane.querySelector('b').textContent = `${player.score}/${goal}`;
   }
+  $('route').style.setProperty('--lane-height', `${Math.min(35, Math.max(15, 375 / Math.max(1, leaders.length)))}px`);
+  $('route').classList.toggle('dense-map', leaders.length > 14);
   $('awaiting-players').hidden = !!leaders.length;
 }
 
@@ -108,19 +110,29 @@ function render() {
   const { teams, goal, question, round, end } = race;
   const [topic, prompt, options, answer, explanation, double] = questions[question];
   const solo = race.mobile?.mode === 'solo';
+  const lobby = race.mobile ? round.phase === 'ready' && question === 0 && !end
+    : !race.started && round.phase === 'ready' && question === 0 && !end;
+  document.body.classList.toggle('lobby', lobby);
+  $('round-console').hidden = lobby;
+  $('flight-rules').hidden = lobby;
+  $('lobby-actions').hidden = !lobby || !!liveRoom || !!race.mobile;
+  $('live-room').hidden = lobby && !race.mobile;
   if (solo) renderSoloLanes(race.mobile.standings, goal);
   else {
     soloOrder = '';
     soloLanes.clear();
+    $('route').style.removeProperty('--lane-height');
+    $('route').classList.remove('dense-map');
     $('awaiting-players').hidden = true;
     buildTeams();
   }
-  $('topic').textContent = topic;
+  $('route').hidden = lobby && !race.mobile;
+  $('topic').textContent = lobby ? '' : topic;
   $('counter').textContent = `שאלה ${question + 1} / ${questions.length}`;
   $('double').hidden = !double;
-  $('question-title').textContent = prompt;
+  $('question-title').textContent = lobby ? '' : prompt;
   optionRows.forEach((row, index) => {
-    row.answer.textContent = options[index];
+    row.answer.textContent = lobby ? '' : options[index];
     row.item.classList.toggle('correct', round.revealed && answer === index);
   });
   $('explanation').hidden = !round.revealed;
@@ -274,6 +286,11 @@ if (projection) {
     }
   });
 } else {
+  $('local-start').onclick = () => {
+    race.started = true;
+    commit();
+  };
+  $('lobby-invite').onclick = () => $('live-room').click();
   $('arm').onclick = () => {
     if (liveRoom) return liveRoom.action(race.round.phase === 'open' ? 'close' : 'open');
     if (race.round.phase !== 'ready' || race.end) return;

@@ -17,7 +17,7 @@
   <div class="brand"><span class="brand-icon" aria-hidden="true">✦</span><div><strong>טכנודע חדרה</strong><small>משימת אסטרונומיה</small></div></div>
   <nav aria-label="כלי משחק">
     <button id="sound" class="light" aria-pressed="true">♪ צליל</button>
-    <button id="live-room">📱 משחק בטלפונים</button>
+    <button id="live-room">הזמנת תלמידים</button>
     <button id="join-page" class="light">הצטרפות</button>
     <button id="project" class="light">מסך הקרנה</button>
     <button id="settings" class="light">⚙ הגדרות</button>
@@ -28,25 +28,30 @@
     <canvas id="space" aria-hidden="true"></canvas>
     <div class="scene-top">
       <div><span class="mission"><i></i> משימת מסלול</span><h1>מרוץ <em>לצדק</em></h1><p>עונים נכון, מאיצים ומגיעים למסלול סביב ענק הגזים.</p></div>
-      <div class="target"><span>יעד המשימה</span><strong>צדק</strong></div>
+      
     </div>
+    <div class="planet-names" aria-label="תחנות במסלול">
+      <span id="label-jupiter">צדק</span><span id="label-asteroids">חגורת האסטרואידים</span>
+      <span id="label-mars">מאדים</span><span id="label-earth">כדור הארץ</span>
+    </div>
+    <div id="lobby-actions" class="teacher" hidden><button id="lobby-invite">הזמנת תלמידים</button><button id="local-start" class="light">משחק עם זמזמים</button></div>
+  <section id="room-board" class="room-board" aria-label="הצטרפות בטלפונים" hidden>
+    <div class="room-invite"><img id="room-qr" alt="קוד QR להצטרפות למרוץ" width="126" height="126" hidden><div><strong>סרקו להצטרפות</strong><b id="room-code" dir="ltr"></b></div></div>
+    <div id="room-counts" aria-live="polite"></div>
+    <div class="teacher room-links"><button id="start-race" hidden>התחלת המרוץ</button><button id="copy-room" class="light">העתקת קישור</button><button id="end-room" class="light">סגירת חדר</button></div>
+    <p id="room-message" class="teacher" role="status" hidden></p>
+  </section>
+
     <div class="route" id="route" dir="ltr">
       <strong id="race-leader" dir="rtl"></strong>
-      <div class="waypoints" aria-hidden="true"><span>מסלול צדק</span><span>חגורת האסטרואידים</span><span>מאדים</span><span>כדור הארץ</span></div>
+      
       <div id="lanes"></div>
       <p id="awaiting-players" dir="rtl" hidden>ממתינים לחלליות הראשונות…</p>
     </div>
     <div id="win" class="win" hidden><div class="win-content"><span aria-hidden="true">✦</span><h2 id="winner"></h2><p id="win-detail"></p><button id="again">מרוץ חדש</button></div></div>
   </section>
 
-  <section id="room-board" class="card room-board" aria-label="הצטרפות בטלפונים" hidden>
-    <div class="room-invite"><img id="room-qr" alt="קוד QR להצטרפות למרוץ" width="126" height="126" hidden><div><strong>קוד הצטרפות</strong><b id="room-code" dir="ltr"></b></div></div>
-    <div id="room-counts" aria-live="polite"></div>
-    <div class="teacher room-links"><button id="copy-room" class="light">העתקת קישור</button><button id="end-room" class="light">סגירת חדר</button></div>
-    <p id="room-message" class="teacher" role="status" hidden></p>
-  </section>
-
-  <div class="console">
+  <div class="console" id="round-console" hidden>
     <section class="question card" aria-labelledby="question-title">
       <div class="card-head"><div><span id="topic" class="tag"></span><span id="double" class="tag amber" hidden>אתגר כפול</span></div><b id="counter"></b></div>
       <h2 id="question-title">טוען את המשימה…</h2>
@@ -69,7 +74,7 @@
     <div class="card-head"><h2 id="ranking-title">טבלת המרוץ</h2></div>
     <ol id="player-ranks"></ol>
   </section>
-  <footer class="teacher"><b>כללי הטיסה</b><span>תשובה נכונה <strong>+2</strong></span><span>בונוס לראשונים <strong>+1</strong></span><span>אתגר כפול <strong>×2</strong> לצעד הבסיסי</span><span id="wrong-rule">טעות מעבירה את התור</span></footer>
+  <footer class="teacher" id="flight-rules" hidden><b>כללי הטיסה</b><span>תשובה נכונה <strong>+2</strong></span><span>בונוס לראשונים <strong>+1</strong></span><span>אתגר כפול <strong>×2</strong> לצעד הבסיסי</span><span id="wrong-rule">טעות מעבירה את התור</span></footer>
 </main>
 </div>
 <main id="student" class="student" hidden>
@@ -101,7 +106,7 @@
   <form id="setup-form">
     <div class="card-head"><h2>הגדרות המרוץ</h2><button type="button" id="close" class="light">סגירה</button></div>
     <label>קבוצות <select id="count"><option>2</option><option selected>3</option><option>4</option><option>5</option><option>6</option></select></label>
-    <label>אורך המסלול <select id="goal"><option value="10">קצר · 10 צעדים</option><option value="16">רגיל · 16 צעדים</option><option value="22">ארוך · 22 צעדים</option></select></label>
+    <label>אורך המסלול <select id="goal"><option value="10">קצר</option><option value="16">רגיל</option><option value="22">ארוך</option></select></label>
     <div id="names"></div>
     <details><summary>איך מפעילים בכיתה?</summary><p>מקריאים שאלה ופותחים זמזמים. הקבוצות לוחצות על הכפתור או על מקש 1–6 במקלדת המשותפת. אם משתמשים במשרוקיות פיזיות, המורה לוחץ על הקבוצה ששמע ראשונה. לאחר תשובה בעל פה, המורה מסמן אם היא נכונה. מסך ההקרנה נפתח בחלון נוסף באותו דפדפן ומתעדכן אוטומטית.</p></details>
     <div class="controls"><button type="submit">שמירת הגדרות</button><button type="button" id="reset" class="light">איפוס המרוץ</button></div>

@@ -39,20 +39,20 @@ h1 em { font-style: normal; color: #ffcb86 }
 .target { border: 1px solid #ffd5a15c; background: #1e173899; padding: 7px 12px; border-radius: 12px; text-align: center; backdrop-filter: blur(5px) }
 .target span { display: block; font-size: .85rem; color: #ffdcae }
 .target strong { font-size: 1.22rem }
-.route { margin: 45px clamp(12px,3vw,36px) 15px; padding: 9px clamp(9px, 2vw, 22px) 7px; border-radius: 16px; background: #080f27dc; border: 1px solid #b6d2ff34; backdrop-filter: blur(10px) }
-.waypoints { display: flex; justify-content: space-between; gap: 9px; color: #c7d3ef; font-size: .82rem; font-weight: 700; padding-block: 3px 8px }
-.waypoints span:first-child { color: #ffd498 }
-.lane { --start: 5%; --length: 90%; display: grid; grid-template-columns: 1fr minmax(66px, 14%); gap: 10px; align-items: center; min-height: 34px; border-top: 1px solid #a6cbff19 }
-.track { position: relative; background: repeating-linear-gradient(90deg, #a9c7ff66 0 4px, transparent 4px 12px) center / var(--length) 1px no-repeat; height: 30px }
-.track::before { content: ""; position: absolute; right: var(--start); width: calc(var(--length) * var(--progress)); height: 2px; top: 14px; background: var(--team); box-shadow: 0 0 10px var(--team); transition: width 1s cubic-bezier(.2,.7,.25,1) }
-.ship-position { position: absolute; left: calc(95% - var(--length) * var(--progress)); top: 50%; transform: translate(-50%,-50%); transition: left 1s cubic-bezier(.2,.7,.25,1) }
+.route { margin: 0; padding: 0 0 23px; position: relative; --lane-height: 35px }
+.lane { --start: 13%; --length: 70%; position: relative; min-height: var(--lane-height) }
+.track { position: relative; height: var(--lane-height) }
+.track::before { content: ""; position: absolute; right: var(--start); width: calc(var(--length) * var(--progress)); height: 1px; top: 50%; background: linear-gradient(to left, transparent, var(--team)); box-shadow: 0 0 6px color-mix(in srgb, var(--team) 55%, transparent); transition: width 1s cubic-bezier(.2,.7,.25,1) }
+.ship-position { position: absolute; left: calc(87% - var(--length) * var(--progress)); top: 50%; transform: translate(-50%,-50%); transition: left 1s cubic-bezier(.2,.7,.25,1) }
 .ship { width: 31px; height: 17px; position: relative; filter: drop-shadow(0 0 5px var(--team)); animation: hover 2.4s ease-in-out infinite alternate }
 .ship::before { content: ""; position: absolute; inset: 0 4px 0 0; clip-path: polygon(0 50%,25% 25%,46% 23%,78% 0,79% 20%,98% 29%,93% 50%,98% 71%,79% 80%,78% 100%,46% 77%,25% 75%); background: linear-gradient(#fff 5%, var(--team) 37%, #eafaff 49%, var(--team) 65%, #535b91 100%) }
 .ship::after { content: ""; position: absolute; left: 9px; top: 5px; width: 7px; height: 6px; border-radius: 45%; background: #263354; border: 1px solid #e4fbff }
 .flame { position: absolute; left: 24px; top: 6px; height: 5px; width: 16px; background: linear-gradient(90deg,#fff7b7,var(--team),transparent); clip-path: polygon(0 0,100% 50%,0 100%); animation: jet .33s alternate infinite }
-.lane-meta { display: flex; justify-content: space-between; gap: 5px; color: var(--team); min-width: 0; font-size: .86rem; font-weight: 700 }
-.lane-meta span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap }
-.lane-meta b { font-variant-numeric: tabular-nums }
+.lane-meta { position: absolute; top: 50%; left: calc(87% - var(--length) * var(--progress) + 24px); transform: translateY(-50%); max-width: min(19vw, 175px); color: #f1f6ff; font-size: .88rem; font-weight: 700; text-shadow: 0 1px 4px #000, 0 0 6px #000; transition: left 1s cubic-bezier(.2,.7,.25,1); pointer-events: none }
+.lane-meta span { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap }
+.lane-meta b { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%) }
+.dense-map .lane-meta { font-size: .76rem }
+.dense-map .ship { scale: .8 }
 .console { display: grid; grid-template-columns: 1.4fr 1fr; gap: 16px; margin-top: 16px; align-items: start }
 .card { border: 1px solid var(--line); border-radius: 19px; background: linear-gradient(135deg,#182241,var(--panel) 60%); padding: clamp(13px,2vw,22px); box-shadow: 0 10px 28px #070b1a48 }
 .card h2, dialog h2 { margin: 0; font-size: 1.22rem }
@@ -91,7 +91,7 @@ summary { cursor: pointer }
 .win p { color: #d9e6ff; margin-block: 8px 13px }
 .projection .teacher, .projection nav, .projection #again { display: none !important }
 .projection .console { grid-template-columns: 1fr }
-.projection .scene { min-height: clamp(370px, 53vh, 670px) }
+
 .projection .card { padding: clamp(16px,3vw,32px) }
 .projection #question-title { font-size: clamp(1.5rem,3vw,2.6rem) }
 .projection #options li { font-size: clamp(1rem,1.6vw,1.5rem) }
@@ -103,15 +103,12 @@ summary { cursor: pointer }
   .top { gap: 8px }
   nav { gap: 5px; justify-content: end }
   nav button { font-size: .82rem; padding: 5px 7px }
-  .scene { min-height: 330px }
-  .route { margin-top: 65px }
 }
 @media(max-width:425px) {
   .brand-icon { display: none }
   .brand strong { font-size: .92rem }
   .brand small { font-size: .73rem }
-  .target { display: none }
-  .waypoints, .lane-meta { font-size: .73rem }
+  .lane-meta { font-size: .73rem }
   #options { grid-template-columns: 1fr }
 }
 @media (prefers-reduced-motion: reduce) {
@@ -154,7 +151,7 @@ summary { cursor: pointer }
 #room-qr { display: block; width: 126px; height: 126px; image-rendering: pixelated; border-radius: 7px }
 #awaiting-players { margin: 5px 0 4px; text-align: center; color: var(--muted) }
 .solo-ranking { margin-top: 16px }
-#race-leader { display: block; color: #ffdb93; padding-block: 1px 5px; overflow-wrap: anywhere }
+#race-leader { display: block; color: #ffdb93; margin: 0 7% 7px; font-size: clamp(1rem,2vw,1.35rem); text-shadow: 0 1px 9px #000; overflow-wrap: anywhere }
 #race-leader:empty { display: none }
 #player-ranks { list-style: none; padding: 0; margin: 12px 0 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(235px,100%),1fr)); gap: 7px }
 #player-ranks li { display: grid; grid-template-columns: 2rem minmax(0,1fr) auto; align-items: center; gap: 7px; position: relative; overflow: hidden; min-height: 41px; padding: 6px 8px; border: 1px solid var(--line); border-radius: 8px; background: #b3d2ff08 }
@@ -162,3 +159,35 @@ summary { cursor: pointer }
 #player-ranks li::before { content: ""; position: absolute; inset: auto 0 0 auto; width: var(--progress); height: 3px; background: var(--player-color); transition: width .7s ease; opacity: .9 }
 #player-ranks span:first-child { color: var(--player-color); font-weight: bold }
 #player-ranks span:nth-child(2) { overflow-wrap: anywhere }
+
+.scene { min-height: max(72svh, 545px); justify-content: flex-start; --map-top: 400px }
+.scene-top { min-height: var(--map-top) }
+.scene-top h1 { font-size: clamp(2.3rem, 5vw, 4.9rem) }
+.scene::before { background: linear-gradient(180deg,#080b21b5,transparent 42%,#05081f55) }
+.planet-names span { position: absolute; transform: translateX(-50%); text-align: center; line-height: 1.1; font-weight: bold; font-size: clamp(.81rem, 1.8vw, 1.32rem); text-shadow: 0 1px 4px #010312, 0 0 13px #010312; pointer-events: none }
+#label-jupiter { color: #ffca87; font-size: clamp(1.1rem, 2.6vw, 1.9rem) }
+#label-asteroids { left: 48.5%; color: #dfdbfc }
+#label-mars { color: #ffc09d }
+#label-earth { color: #9ce9ff }
+#lobby-actions { position: absolute; inset-block-end: 8%; inset-inline: 8%; display: flex; gap: 10px; justify-content: center; flex-wrap: wrap }
+.room-board { position: absolute; z-index: 1; margin: 0; inset-block-start: 23px; inset-inline-end: 24px; max-width: 54%; justify-content: end; padding: 0 }
+.room-board strong { font-size: .83rem }
+body:not(.lobby) .room-board #room-qr { display: none }
+body:not(.lobby) .room-board #room-code { font-size: 1rem }
+.lobby .room-board { inset: auto 50% auto auto; top: clamp(115px, 19vh, 185px); transform: translateX(50%); max-width: none; width: min(375px,49%); display: grid; justify-items: center; justify-content: stretch; text-align: center; gap: 8px; padding: 13px; border-radius: 16px; background: #080d20df; border: 1px solid #a1d4ff5c; box-shadow: 0 8px 30px #01041c9e }
+.lobby .room-invite { gap: 12px }
+.lobby .room-links { justify-content: center }
+#start-race { background: #ffcb86 }
+.lobby #room-message { font-size: .85rem }
+@media(max-width:760px) {
+  .scene { min-height: max(72svh, 470px) }
+  .scene-top { padding-block-start: 18px }
+  .scene-top p { max-width: 30ch; font-size: .82rem }
+  .lobby .room-board { width: min(78%,325px); top: auto; inset-block-end: 35px }
+  .lobby:has(.room-board:not([hidden])) .scene { min-height: 625px }
+  .lobby:has(.room-board:not([hidden])) .route { padding-bottom: 260px }
+  body:not(.lobby) .room-board { max-width: none; position: relative; inset: auto; margin: 0 10px 13px; justify-content: start; padding: 0 }
+  .room-board #room-qr { width: 88px; height: 88px }
+  .lane-meta { max-width: 11vw; left: calc(87% - var(--length) * var(--progress) + 17px) }
+  .ship { scale: .78 }
+}

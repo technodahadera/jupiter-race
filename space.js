@@ -5,9 +5,9 @@
   const motion = matchMedia('(prefers-reduced-motion: reduce)');
   const nebula = new Image();
   const planets = [
-    { x: .188, y: .43, scale: 1, kind: 'jupiter', colors: ['#ffe5b7','#f1bc83','#b66f56','#ffdcaa','#9f5a4a','#e3a16e','#f6c38e','#a2615b','#f8d5a7'] },
-    { x: .61, y: .49, scale: .25, kind: 'mars', colors: ['#f5b889','#d57959','#8e453d','#d68a6a'] },
-    { x: .91, y: .50, scale: .38, kind: 'earth', colors: ['#79e6ff','#287ab7','#134893','#316aac'] }
+    { x: .17, scale: 1, kind: 'jupiter', colors: ['#ffe5b7','#f1bc83','#b66f56','#ffdcaa','#9f5a4a','#e3a16e','#f6c38e','#a2615b','#f8d5a7'] },
+    { x: .65, scale: .36, kind: 'mars', colors: ['#f5b889','#d57959','#8e453d','#d68a6a'] },
+    { x: .87, scale: .47, kind: 'earth', colors: ['#79e6ff','#287ab7','#134893','#316aac'] }
   ];
 
   let seed = 832;
@@ -89,6 +89,8 @@
   let width = 0;
   let height = 0;
   let frame;
+  let planetY = 0;
+  let unit = 0;
   function draw(time = 0) {
     const t = time / 1000;
     ctx.clearRect(0, 0, width, height);
@@ -105,10 +107,9 @@
       ctx.fill();
     });
 
-    const unit = Math.min(width * .15, height * .44, 206);
     rocks.forEach(([a,b,c,d]) => {
-      const x = (.30 + a * .25) * width + Math.sin(t * .3 + c * 15) * 7;
-      const y = (.21 + b * .41) * height;
+      const x = (.40 + a * .17) * width + Math.sin(t * .3 + c * 15) * 7;
+      const y = planetY - 55 + b * 94;
       const r = 2 + 7 * c;
       ctx.save();
       ctx.translate(x, y);
@@ -130,7 +131,7 @@
 
     planets.forEach((planet, index) => {
       const x = planet.x * width + Math.sin(t * .45 + index) * (index ? 7 : 4);
-      const y = planet.y * height + Math.cos(t * .61 + index) * 6;
+      const y = planetY + Math.cos(t * .61 + index) * 6;
       const size = unit * planet.scale;
       if (!index) {
         ctx.save();
@@ -174,6 +175,15 @@
     const rect = canvas.getBoundingClientRect();
     width = rect.width;
     height = rect.height;
+    planetY = width < 540 ? 185 : Math.max(220, Math.min(271, innerHeight * .29));
+    unit = Math.min(width * .145, 132);
+    for (const planet of planets) {
+      const label = document.getElementById(`label-${planet.kind}`);
+      label.style.left = `${planet.x * 100}%`;
+      label.style.top = `${planetY + unit * planet.scale + 11}px`;
+    }
+    document.getElementById('label-asteroids').style.top = `${planetY + 58}px`;
+    canvas.parentElement.style.setProperty('--map-top', `${planetY + unit + 47}px`);
     const scale = Math.min(devicePixelRatio, 2);
     canvas.width = Math.round(width * scale);
     canvas.height = Math.round(height * scale);

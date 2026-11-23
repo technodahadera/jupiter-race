@@ -107,7 +107,7 @@
     standings.forEach((player, index) => {
       const row = rankRows.get(player.id);
       row.children[0].textContent = index + 1;
-      row.children[2].textContent = `${player.score}/${goal}`;
+      row.children[2].textContent = `${player.score} נק׳`;
       row.style.setProperty('--progress', `${player.score / goal * 100}%`);
     });
   }
@@ -115,6 +115,9 @@
   renderRoom = () => {
     const state = race.mobile;
     $('room-board').hidden = !state;
+    const waiting = document.body.classList.contains('lobby');
+    $('start-race').hidden = !waiting || !liveRoom;
+    $('start-race').disabled = liveUIBusy;
     updateQR(state?.code ?? '');
     updateRanks(state?.mode === 'solo' ? state.standings : [], race.goal);
     if (!state) return;
@@ -123,7 +126,7 @@
     const timing = race.round.phase === 'open' ? ` · ${Math.ceil(state.remaining / 1000)} שניות` : '';
     const players = joined === 1 ? 'משתתף אחד' : `${joined} משתתפים`;
     const answers = state.submissions === 1 ? 'תשובה אחת' : `${state.submissions} תשובות`;
-    const counts = `${players} · ${answers}${timing}`;
+    const counts = waiting ? players : `${players} · ${answers}${timing}`;
     if ($('room-counts').textContent !== counts) $('room-counts').textContent = counts;
   };
   render();
@@ -145,6 +148,7 @@
     const phase = state.phase === 'closing' ? 'open' : state.phase;
     const solo = state.mode === 'solo';
     if (!solo) race.teams = state.teams;
+    race.setupGoal ??= race.goal;
     race.goal = state.goal;
     race.question = state.question;
     race.mobile = { code: state.code, mode: state.mode, remaining: state.remaining, joined: state.joined,
@@ -181,8 +185,8 @@
     currentState = null;
     liveRoom = null;
     liveUIBusy = false;
-    race = fresh(race.teams.map(team => team.name), race.goal, race.sound);
-    $('live-room').textContent = '📱 משחק בטלפונים';
+    race = fresh(race.teams.map(team => team.name), race.setupGoal ?? 16, race.sound);
+    $('live-room').textContent = 'הזמנת תלמידים';
     $('live-room').disabled = false;
     message('room-message', '');
     commit();
@@ -215,21 +219,23 @@
     if (!skipConfirm && inProgress && !confirm('פתיחת חדר טלפונים תתחיל מרוץ חדש. להמשיך?')) return;
     liveUIBusy = true;
     $('live-room').disabled = true;
+    $('lobby-invite').disabled = true;
     $('live-room').textContent = 'פותחים חדר…';
     try {
       const result = await request('/rooms', { body: { mode: 'solo', names: race.teams.map(team => team.name), goal: race.goal, question: 0 } });
       cacheIdentity({ code: result.code, hostKey: result.hostKey });
       setupHost();
       applyState({ code: result.code, mode: 'solo', phase: 'ready', question: 0, standings: [],
-        goal: race.goal, joined: 0, submissions: 0, remaining: 0 });
+        goal: result.goal ?? race.goal, joined: 0, submissions: 0, remaining: 0 });
       message('room-message', 'הציגו את קוד ה־QR לכיתה או העתיקו את קישור ההצטרפות.');
       refreshRoom();
     } catch {
-      $('live-room').textContent = '📱 משחק בטלפונים';
+      $('live-room').textContent = 'הזמנת תלמידים';
       alert('לא הצלחנו לפתוח חדר טלפונים. בדקו את החיבור ונסו שוב.');
     } finally {
       liveUIBusy = false;
       $('live-room').disabled = false;
+      $('lobby-invite').disabled = false;
       render();
     }
   }
@@ -269,6 +275,7 @@
     if (credentials) $('room-board').scrollIntoView({block:'nearest'});
     else openRoom();
   };
+  $('start-race').onclick = () => doAction('open');
   $('join-page').onclick = () => { location.href = address(); };
   $('end-room').onclick = () => {
     if (confirm('לסגור את החדר ולנתק את הטלפונים?')) doAction('delete');
@@ -358,10 +365,10 @@
       $('student-team').textContent = pilot.name;
       $('student-timer').textContent = open ? `${Math.ceil(state.remaining / 1000)} שניות`
         : state.ended ? 'המשימה הסתיימה' : resolved ? 'תוצאות' : 'ממתינים למורה';
-      $('student-question').textContent = state.phase === 'ready' ? (state.ended ? 'המרוץ הסתיים!' : 'מחכים לפתיחת השאלה') : state.prompt;
+      $('student-question').textContent = state.phase === 'ready' ? (state.ended ? 'המרוץ הסתיים!' : 'מחכים שהמורה יתחיל את המרוץ') : state.prompt;
       $('student-answers').hidden = state.phase === 'ready';
       answers.forEach(({button, text}, index) => {
-        text.textContent = state.options[index];
+        text.textContent = state.options?.[index] ?? '';
         button.disabled = !open || choice !== null || busy;
         button.classList.toggle('selected', choice === index);
         button.classList.toggle('answer-correct', resolved && state.result.answer === index);
@@ -375,7 +382,8 @@
       const winner = solo ? state.result?.winnerName : state.teams[state.result?.winner]?.name;
       const orbit = winner ? ` · מקום ראשון: ${winner}` : '';
       const rank = solo && state.rank ? ` · מקום ${state.rank}` : '';
-      $('student-score').textContent = `${pilot.score} מתוך ${state.goal} צעדים לצדק${rank}${orbit}`;
+      const distance = solo && pilot.score >= state.goal ? `${pilot.score} נקודות · במסלול סביב צדק` : `${pilot.score} מתוך ${state.goal} צעדים לצדק`;
+      $('student-score').textContent = `${distance}${rank}${orbit}`;
     }
 
     function update(data) {
